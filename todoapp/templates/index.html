@@ -1,6 +1,5 @@
 <html>
     <head>
-        <script src="https://cdn.jsdelivr.net/npm/flexboxgrid@6.3.1/dist/flexboxgrid.min.js"></script>
         <title>Todo App</title>
         <style>
             .hidden {
@@ -50,23 +49,28 @@
     </head>
     <body>
         <h1>App de To-Dos</h1>
+        <div id="erro" class="hidden">Algo deu errado!</div>
         <div id="MainApp" class="parent">
             <div id="TodoLists" class="child1">
                 <h2 id="TodoListHeader">TodoLists</h2>
                 <form id="formTodoList" action="/todoLists/create" method="post">
                     <label for="listDescription">Nome da Lista</label>
-                    <input type="text" id='description' name="description"/>
+                    <input type="text" id='listDescription' name="description"/>
                     <input type="submit" value="Criar Lista"/>
                 </form>
+                <ul id="listsList">
+                    {% for d in lists %}
+                    <li id="ll{{d.id}}"><a href="/lists/{{d.id}}">{{d.name}}</a>
+                    {% endfor %}
+                </ul>
             </div>
             <div id="ActiveList" class="child2">
                 <h2 id="ActiveListHeader">{{ active_list.name }}</h2>
                 <form id='formTodo' action="/todos/create" method="post">
                     <label for="description">Nome</label>
-                    <input type="text" id='description' name="description"/>
+                    <input type="text" id='todoDescription' name="description"/>
                     <input type="submit" value="Criar Tarefa"/>
                 </form>
-                <div id="erro" class="hidden">Algo deu errado!</div>
                 <ul id="todoList">
                     {% for d in todos %}
                     <li id="li{{d.id}}"><input data-id="{{d.id}}" class="check-completed" type="checkbox" 
@@ -133,13 +137,13 @@
                 checkboxChecker();
             }
             
-            // Listener para o botão Criar
+            // Listener para o botão Criar Tarefa
             document.getElementById('formTodo').onsubmit = function(e) {
                 e.preventDefault();
                 fetch('/todos/create', {
                     method: 'POST',
                     body: JSON.stringify({
-                        'description': document.getElementById('description').value,
+                        'description': document.getElementById('todoDescription').value,
                         'list_id': {{ active_list.id }}
                     }),
                     headers: {
@@ -184,7 +188,42 @@
                         document.getElementById('erro').className = '';
                     })
             }
-            
+
+            // Listener para o botão Criar Lista
+            document.getElementById('formTodoList').onsubmit = function(e) {
+                e.preventDefault();
+                fetch('/todoLists/create', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        'name': document.getElementById('listDescription').value,
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    //AJAX para atualizar a lista 
+                    .then(function(jsonResponse) {
+                        console.log(jsonResponse);
+                        const liItem = document.createElement('LI');
+                        liItem.innerHTML = `
+                        <li id="ll`+jsonResponse.id+`"><a href="/lists/`+jsonResponse.id+`">`+jsonResponse.name+`</a>
+                        `
+                        // Insere o novo elemento na lista
+                        document.getElementById('listsList').appendChild(liItem);
+                        
+                        // Anexa os listeners de evento aos novos elementos
+                        attachEventListeners();
+                        
+                        document.getElementById('erro').className = 'hidden';
+                    })
+                    .catch(function() {
+                        document.getElementById('erro').className = '';
+                    })
+            }
+
             // Anexa os listeners de evento aos elementos já existentes
             attachEventListeners();
         </script>

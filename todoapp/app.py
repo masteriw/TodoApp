@@ -44,7 +44,6 @@ def create():
   error = False
   body = {}
   try:
-    print('cheguei')
     description = request.get_json()['description']
     list_id = request.get_json()['list_id']
     todo = Todo(description=description, list_id = list_id)
@@ -64,6 +63,30 @@ def create():
     db.session.close()
   if error:
     abort (400)
+  else:
+    return jsonify(body)
+  
+@app.route('/todoLists/create', methods=['POST'])
+def createList():
+  error = False
+  body = {}
+  try:
+    print('cheguei')
+    name = request.get_json()['name']
+    print(name) 
+    todoList = TodoList(name=name)
+    db.session.add(todoList)
+    db.session.commit()
+    body['id'] = todoList.id
+    body['name'] = todoList.name
+  except:
+    db.session.rollback()
+    error=True
+    print(sys.exc_info())
+  finally:
+    db.session.close()
+  if error:
+      abort(400)
   else:
     return jsonify(body)
     
