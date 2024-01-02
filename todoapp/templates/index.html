@@ -1,5 +1,6 @@
 <html>
     <head>
+        <script src="https://cdn.jsdelivr.net/npm/flexboxgrid@6.3.1/dist/flexboxgrid.min.js"></script>
         <title>Todo App</title>
         <style>
             .hidden {
@@ -23,25 +24,61 @@
                 cursor: pointer;
                 font-size: 20px;
             }
+
+            .parent {
+                width: 100vw;
+                height: 85vh;
+                /* Aligns the children items in a row direction */
+                display: flex;
+            }
+
+            .child1{
+                background-color: violet;
+                padding-top: 10px;
+                padding-right: 10px;
+                padding-left: 10px;
+            }
+
+            .child2{
+                background-color: rgb(128, 255, 0);
+                padding-top: 10px;
+                padding-right: 10px;
+                padding-left: 10px;
+            }
+
         </style>
     </head>
     <body>
-        <form id='formTodo' action="/todos/create" method="post">
-            <label for="description">Nome</label>
-            <input type="text" id='description' name="description"/>
-            <input type="submit" value="Criar" />
-        </form>
-        <div id="erro" class="hidden">Algo deu errado!</div>
-        <ul id="todoList">
-            {% for d in data %}
-            <li id="li{{d.id}}"><input data-id="{{d.id}}" class="check-completed" type="checkbox" 
-                {% if d.completed %} checked {% endif %} /> {{d.description}} 
-                <button class="delete-item" data-id="{{d.id}}">
-                    &cross;
-                </button> 
-            </li>
-            {% endfor %}
-        </ul>
+        <h1>App de To-Dos</h1>
+        <div id="MainApp" class="parent">
+            <div id="TodoLists" class="child1">
+                <h2 id="TodoListHeader">TodoLists</h2>
+                <form id="formTodoList" action="/todoLists/create" method="post">
+                    <label for="listDescription">Nome da Lista</label>
+                    <input type="text" id='description' name="description"/>
+                    <input type="submit" value="Criar Lista"/>
+                </form>
+            </div>
+            <div id="ActiveList" class="child2">
+                <h2 id="ActiveListHeader">{{ active_list.name }}</h2>
+                <form id='formTodo' action="/todos/create" method="post">
+                    <label for="description">Nome</label>
+                    <input type="text" id='description' name="description"/>
+                    <input type="submit" value="Criar Tarefa"/>
+                </form>
+                <div id="erro" class="hidden">Algo deu errado!</div>
+                <ul id="todoList">
+                    {% for d in todos %}
+                    <li id="li{{d.id}}"><input data-id="{{d.id}}" class="check-completed" type="checkbox" 
+                        {% if d.completed %} checked {% endif %} /> {{d.description}} 
+                        <button class="delete-item" data-id="{{d.id}}">
+                            &cross;
+                        </button> 
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
         <script>
             // Listener para os botões de delete
             function deleteItem() {
@@ -102,7 +139,8 @@
                 fetch('/todos/create', {
                     method: 'POST',
                     body: JSON.stringify({
-                        'description': document.getElementById('description').value
+                        'description': document.getElementById('description').value,
+                        'list_id': {{ active_list.id }}
                     }),
                     headers: {
                         'Content-Type': 'application/json'

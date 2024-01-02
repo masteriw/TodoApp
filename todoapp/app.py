@@ -23,9 +23,21 @@ class TodoList(db.Model):
   name = db.Column(db.String(), nullable = False)
   todos = db.relationship('Todo', backref='list', lazy=True)
 
+  def __repr__(self):
+    return f'<TodoList> id = {self.id} name = {self.name} todos = {self.todos}>'
+
 @app.route('/')
 def index():
-  return render_template('index.html', data=Todo.query.order_by(Todo.id).all())
+  list_id = TodoList.query.first().id
+  return redirect(url_for('get_list_todos', list_id = list_id))
+
+@app.route('/lists/<list_id>')
+def get_list_todos(list_id):
+  return render_template('index.html',
+  lists=TodoList.query.all(),
+  active_list=TodoList.query.get(list_id),
+  todos=Todo.query.filter_by(list_id=list_id).order_by('id').all()
+)
 
 @app.route('/todos/create', methods=['POST'])
 def create():
@@ -34,12 +46,16 @@ def create():
   try:
     print('cheguei')
     description = request.get_json()['description']
-    todo = Todo(description=description)
+    list_id = request.get_json()['list_id']
+    todo = Todo(description=description, list_id = list_id)
+    active_list = TodoList.query.get(list_id)
+    todo.list = active_list
     db.session.add(todo)
     db.session.commit()
     body['description'] = todo.description
     body['id'] = todo.id
     body['completed'] = todo.completed
+    body['list_id'] = todo.list_id
   except:
     db.session.rollback()
     error=True
@@ -57,7 +73,7 @@ def set_completed_todo(todo_id):
     completed = request.get_json()['completed']
     todo = Todo.query.get(todo_id)
     todo.completed = completed
-    db.session.commit()
+    db.session.commit() 
   except:
     db.session.rollback()
   finally:
