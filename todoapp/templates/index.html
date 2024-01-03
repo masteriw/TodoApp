@@ -90,7 +90,6 @@
                 for (let i = 0; i < buttons.length; i++) {
                     const button = buttons[i];
                     button.onclick = function(e) {
-                        console.log('button event', e)
                         const todoId = e.target.getAttribute('data-id');
                         fetch('/todos/delete', {
                             method: 'POST',
@@ -115,7 +114,6 @@
                 for (let i = 0; i < checkboxes.length; i++) {
                     const checkbox = checkboxes[i];
                     checkbox.onchange = function(e) {
-                        console.log('event', e);
                         const newCompleted = e.target.checked;
                         const todoId = e.target.getAttribute('data-id');
                         fetch('/todos/' + todoId + '/set-completed', {
@@ -155,7 +153,6 @@
                     })
                     //AJAX para atualizar a lista 
                     .then(function(jsonResponse) {
-                        console.log(jsonResponse);
                         const liItem = document.createElement('LI');
                         if (jsonResponse.completed) {
                             liItem.innerHTML = `
@@ -206,7 +203,6 @@
                     })
                     //AJAX para atualizar a lista 
                     .then(function(jsonResponse) {
-                        console.log(jsonResponse);
                         const liItem = document.createElement('LI');
                         liItem.innerHTML = `
                         <li id="ll`+jsonResponse.id+`"><a href="/lists/`+jsonResponse.id+`">`+jsonResponse.name+`</a>
